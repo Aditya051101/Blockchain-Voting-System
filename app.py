@@ -258,29 +258,6 @@ def admin_reset_voting():
     db.close()
     return jsonify({'reset': True, 'archived_results': True})
 
-# @app.route("/admin/mine", methods=["POST"])
-# @login_required
-# @role_required("admin")
-# def admin_mine():
-#     db = get_db()
-#     s = db.query(Settings).first()
-#     # cannot mine if results declared
-#     if s.results_declared:
-#         db.close()
-#         flash("Results already declared. Mining disabled.")
-#         return redirect(url_for("admin_dashboard"))
-#     if not blockchain.unconfirmed_transactions:
-#         db.close()
-#         flash("No transactions to mine")
-#         return redirect(url_for("admin_dashboard"))
-#     idx = blockchain.mine()
-#     db.close()
-#     if idx == -1:
-#         flash("Mining failed")
-#     else:
-#         flash(f"Block mined: index {idx}")
-#     return redirect(url_for("admin_dashboard"))
-
 ### ORGANIZATION ###
 @app.route("/org/dashboard")
 @login_required
@@ -447,4 +424,5 @@ def api_chain():
     return jsonify(blockchain.to_list())
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Allow mobile phones on same Wi-Fi to access via IP:5000
+    app.run(host="0.0.0.0", port=5000, debug=True)
