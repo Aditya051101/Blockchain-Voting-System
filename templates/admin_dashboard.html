@@ -1,0 +1,267 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="admin-dashboard">
+  <h1 class="page-title">🛠️ Admin Dashboard</h1>
+
+  <!-- ===================== ROW 1: VOTING CONTROL + SUMMARY ===================== -->
+  <div class="grid-row">
+    <!-- Voting Control Card -->
+    <div class="card control-card">
+      <h3>🗳️ Voting Control</h3>
+
+      <div class="status-block">
+        <p>
+          <strong>Status:</strong>
+          <span id="voting-status" class="{{ 'status-active' if settings.voting_active else 'status-stopped' }}">
+            {{ 'Active 🟢' if settings.voting_active else 'Stopped 🔴' }}
+          </span>
+        </p>
+        <p>
+          <strong>Results Declared:</strong>
+          <span id="results-status">
+            {{ '✅ Yes' if settings.results_declared else '❌ No' }}
+          </span>
+        </p>
+      </div>
+
+      <div class="button-group">
+        <button id="toggle-btn" class="btn btn-primary">
+          {{ 'Stop Voting' if settings.voting_active else 'Start Voting' }}
+        </button>
+
+        <button id="declare-btn" class="btn btn-warning" {{ 'disabled' if settings.results_declared else '' }}>
+          🏆 Declare Results
+        </button>
+
+        <!-- <form method="post" action="/admin/mine" class="inline-form">
+          <button type="submit" class="btn btn-secondary">⛏️ Mine Blocks</button>
+        </form> -->
+
+        <button id="reset-btn" class="btn btn-danger">
+          🔄 Reset Voting
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="card summary-card">
+      <h3>📊 Summary</h3>
+      <!-- <p><strong>Unconfirmed Transactions:</strong> {{ unconfirmed }}</p> -->
+      <p><strong>Blockchain Length:</strong> {{ chain_len }}</p>
+      <hr>
+      <h4>🏃 Candidates</h4>
+      <ul>
+        {% for c in candidates %}
+          <li>
+            {{ c.name }}
+            {% if c.organization %}
+              (Org: {{ c.organization.name }})
+            {% else %}
+              (No Organization)
+            {% endif %}
+          </li>
+        {% else %}
+          <li>No candidates yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===================== ROW 2: MANAGEMENT ===================== -->
+  <h2 class="section-title">👥 Management</h2>
+
+  <div class="grid-row">
+    <!-- Create User -->
+    <div class="card">
+      <h4>👤 Register User</h4>
+      <form method="post" action="/admin/register_user">
+        <input name="username" placeholder="Username" required>
+        <input name="password" placeholder="Password" type="password" required>
+
+        <select name="role" required>
+          <option value="admin">Admin</option>
+          <option value="organization">Organization</option>
+          <option value="voter">Voter</option>
+        </select>
+
+        <select name="org_id">
+          <option value="">-- Organization (optional) --</option>
+          {% for o in orgs %}
+          <option value="{{ o.id }}">{{ o.name }}</option>
+          {% endfor %}
+        </select>
+
+        <input name="public_key" placeholder="Public Key (for voter, optional)">
+        <button type="submit" class="btn btn-success">Register</button>
+      </form>
+    </div>
+
+    <!-- Create Organization -->
+    <div class="card">
+      <h4>🏢 Create Organization</h4>
+      <form method="post" action="/admin/create_org">
+        <input name="name" placeholder="Organization Name" required>
+        <input name="description" placeholder="Description" required>
+        <button type="submit" class="btn btn-success">Create</button>
+      </form>
+    </div>
+
+    <!-- Create Candidate -->
+    <div class="card">
+      <h4>🧾 Create Candidate</h4>
+      <form method="post" action="/admin/create_candidate" >
+        <input name="name" placeholder="Candidate Name" required>
+        <select name="org_id">
+          <option value="">-- Organization (optional) --</option>
+          {% for o in orgs %}
+          <option value="{{ o.id }}">{{ o.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-success">Add</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== JAVASCRIPT ===================== -->
+<script>
+async function updateVotingStatus() {
+  try {
+    const res = await fetch("/admin/get_voting_status");
+    const data = await res.json();
+
+    const votingStatus = document.getElementById("voting-status");
+    const resultsStatus = document.getElementById("results-status");
+    const toggleBtn = document.getElementById("toggle-btn");
+    const declareBtn = document.getElementById("declare-btn");
+
+    votingStatus.textContent = data.state === "active" ? "Active 🟢" : "Stopped 🔴";
+    votingStatus.className = data.state === "active" ? "status-active" : "status-stopped";
+
+    resultsStatus.textContent = data.results_declared ? "✅ Yes" : "❌ No";
+
+    toggleBtn.textContent = data.state === "active" ? "Stop Voting" : "Start Voting";
+    declareBtn.disabled = data.results_declared;
+  } catch (err) {
+    console.error("Error updating voting status:", err);
+  }
+}
+
+document.getElementById("toggle-btn").addEventListener("click", async () => {
+  try {
+    const res = await fetch("/admin/toggle_voting", { method: "POST" });
+    const data = await res.json();
+    updateVotingStatus();
+  } catch (err) {
+    console.error("Error toggling voting:", err);
+  }
+});
+
+document.getElementById("declare-btn").addEventListener("click", async () => {
+  if (!confirm("Are you sure you want to declare results? Voting will stop.")) return;
+  try {
+    const res = await fetch("/admin/declare_results", { method: "POST" });
+    await res.json();
+    updateVotingStatus();
+  } catch (err) {
+    console.error("Error declaring results:", err);
+  }
+});
+
+document.getElementById("reset-btn").addEventListener("click", async () => {
+  if (!confirm("This will archive and reset the current election. Continue?")) return;
+  try {
+    const res = await fetch("/admin/reset_voting", { method: "POST" });
+    const data = await res.json();
+    if (data.reset) {
+      alert("✅ Voting has been reset successfully.");
+      updateVotingStatus();
+    }
+  } catch (err) {
+    console.error("Error resetting voting:", err);
+  }
+});
+
+updateVotingStatus();
+</script>
+
+<!-- ===================== STYLES ===================== -->
+<style>
+.admin-dashboard {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #222;
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+}
+
+.control-card { background: #f8faff; }
+.summary-card { background: #fefbf6; }
+
+.status-active { color: green; font-weight: bold; }
+.status-stopped { color: red; font-weight: bold; }
+
+.button-group button, .inline-form button {
+  margin: 8px 5px;
+  width: 48%;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: 0.2s ease;
+}
+
+.btn-primary { background-color: #007bff; color: #fff; }
+.btn-secondary { background-color: #6c757d; color: #fff; }
+.btn-success { background-color: #28a745; color: #fff; }
+.btn-warning { background-color: #ffc107; color: #000; }
+.btn-danger { background-color: #dc3545; color: #fff; }
+
+.btn:hover { opacity: 0.85; }
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+h2.section-title {
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  color: #333;
+  text-align: center;
+}
+
+ul {
+  margin: 10px 0 0 20px;
+}
+</style>
+{% endblock %}

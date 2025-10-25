@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title or "Cryptovoting Voting System" }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Base CSS -->
+  <style>
+    :root {
+      --primary: #007bff;
+      --secondary: #6c757d;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --light: #f8f9fa;
+      --dark: #001f66;
+      --bg: #f4f6f9;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--dark);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    nav {
+      background-color: var(--dark);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    nav .nav-left a,
+    nav .nav-right a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 1rem;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--warning);
+    }
+
+    nav .role-info {
+      color: #ddd;
+      font-size: 0.9rem;
+    }
+
+    .container {
+      flex: 1;
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .flashes {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 20px 0;
+    }
+
+    .flashes li {
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 10px 15px;
+      border: 1px solid #ffeeba;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    footer {
+      background-color: var(--dark);
+      color: #ccc;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      nav .nav-right {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <nav>
+    <div class="nav-left">
+      {% if session.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}">🏠 Admin Home</a>
+      {% elif session.role == 'organization' %}
+        <a href="{{ url_for('org_dashboard') }}">🏢 {{ org_name }} Org. Home</a>
+      {% elif session.role == 'voter' %}
+        <a href="{{ url_for('voter_dashboard') }}">🧾 Voter Home</a>
+      {% else %}
+        <a href="/">🏠 Home</a>
+      {% endif %}
+    </div>
+
+    <div class="nav-right">
+      {% if session.user_id %}
+        <span class="role-info">👤 Role: {{ session.role|capitalize }}</span>
+        <a href="{{ url_for('results') }}">📊 Results</a>
+        <a href="{{ url_for('logout') }}">🚪 Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">🔐 Login</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- ================= CONTENT ================= -->
+  <div class="container">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for m in messages %}
+            <li>{{ m }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer>
+    <p>© {{ current_year or 2025 }} Cryptovoting</p>
+  </footer>
+</body>
+</html>

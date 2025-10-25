@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="voter-dashboard">
+
+  <h2 class="page-title">🗳️ Voter Dashboard</h2>
+
+  {% if not voting_active %}
+    <div class="info-box warning">
+      ⚠️ Voting is currently closed. Please wait to start the election.
+    </div>
+
+  {% elif has_voted %}
+    <div class="info-box success">
+      ✅ Your vote has been submitted successfully. Thank you for participating!
+    </div>
+
+    <script>
+      // Automatically reload dashboard after 10 seconds to reflect any new status
+      setTimeout(() => {
+        window.location.href = "{{ url_for('voter_dashboard') }}";
+      }, 10000);
+    </script>
+
+  {% else %}
+    <div class="card vote-section">
+      <h3>🖋️ Cast Your Vote</h3>
+      <p class="description">
+        Enter your <strong>Private Key (hex)</strong> — it stays only in your browser.
+        It is never stored or shared, except to generate a digital signature.
+      </p>
+
+      <!-- Private Key Input -->
+      <div class="form-group">
+        <label for="private_key">🔐 Your Private Key (hex):</label><br>
+        <input id="private_key" placeholder="Enter your private key" style="width: 100%;">
+      </div>
+
+      <!-- Candidate Selection -->
+      <div class="form-group">
+        <label for="candidate_id">👤 Choose Candidate:</label><br>
+        <select id="candidate_id" style="width: 100%;">
+          {% for c in candidates %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Hidden Form Fields -->
+      <form id="voteForm" method="post" action="/voter/cast">
+        <input type="hidden" name="candidate_id" id="hidden_candidate_id">
+        <input type="hidden" name="ballot_hash" id="hidden_ballot_hash">
+        <input type="hidden" name="signature" id="hidden_signature">
+      </form>
+
+      <!-- Submit Button -->
+      <button class="btn-primary" onclick="signAndSubmit()">✅ Sign & Submit Vote</button>
+    </div>
+
+    <!-- JavaScript for Signing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
+    <script>
+      const ec = new elliptic.ec('secp256k1');
+
+      async function hexSha256(str) {
+        const enc = new TextEncoder();
+        const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      function hexToBytes(hex) {
+        return new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+      }
+
+      async function signAndSubmit() {
+        const priv = document.getElementById('private_key').value.trim();
+        const cid = document.getElementById('candidate_id').value;
+        if (!priv) { alert('⚠️ Please enter your private key'); return; }
+
+        const ballotString = Math.random().toString(36).slice(2) + '|' + cid + '|' + Date.now();
+        const ballotHashHex = await hexSha256(ballotString);
+
+        const key = ec.keyFromPrivate(priv, 'hex');
+        const digestBytes = hexToBytes(ballotHashHex);
+        const sig = key.sign(digestBytes);
+        const sigHex = sig.r.toString('hex').padStart(64, '0') + sig.s.toString('hex').padStart(64, '0');
+
+        document.getElementById('hidden_candidate_id').value = cid;
+        document.getElementById('hidden_ballot_hash').value = ballotHashHex;
+        document.getElementById('hidden_signature').value = sigHex;
+
+        document.getElementById('voteForm').submit();
+      }
+    </script>
+  {% endif %}
+</div>
+
+<!-- Styling -->
+<style>
+  .voter-dashboard {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  }
+
+  .page-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 25px;
+  }
+
+  .info-box {
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .info-box.warning {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .info-box.success {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .card {
+    padding: 20px;
+    border-radius: 10px;
+    background: #f8f9fa;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  input, select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-top: 5px;
+  }
+
+  input:focus, select:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .description {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .voter-dashboard {
+      padding: 20px;
+    }
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,6 @@
+Flask
+SQLAlchemy
+PyMySQL
+ecdsa
+werkzeug
+gunicorn

@@ -1,0 +1,157 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="org-dashboard">
+
+  <h2 class="dashboard-title">🏢 {{ org_name }} Organization Dashboard</h2>
+  <p class="dashboard-subtitle">Manage candidates and voters for your organization</p>
+
+  <div class="dashboard-sections">
+
+    <!-- Create Candidate Section -->
+    <section class="card">
+      <h3>Create Candidate</h3>
+      <form method="post" action="/org/create_candidate" class="form">
+        <input name="name" placeholder="Candidate name" required>
+        <button type="submit" class="btn">Add Candidate</button>
+      </form>
+    </section>
+
+    <!-- Register Voter Section -->
+    <section class="card">
+      <h3>Register Voter</h3>
+      <form method="post" action="/org/register_voter" class="form">
+        <input name="username" placeholder="Voter username" required>
+        <input name="password" type="password" placeholder="Voter password" required>
+        <input name="public_key" placeholder="Voter public key (hex)" required>
+        <button type="submit" class="btn">Register Voter</button>
+      </form>
+    </section>
+
+    <!-- Voter List Section -->
+    <section class="card">
+      <h3>Registered Voters</h3>
+      {% if voters %}
+        <table class="voter-table">
+          <thead>
+            <tr>
+              <!-- <th>ID</th> -->
+              <th>Username</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in voters %}
+            <tr>
+              <!-- <td>{{ v.id }}</td> -->
+              <td>{{ v.username }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No voters registered yet.</p>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+
+<style>
+  .org-dashboard {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    color: #222;
+  }
+
+  .dashboard-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+  }
+
+  .dashboard-sections {
+    display: grid;
+    gap: 25px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    padding: 25px;
+  }
+
+  h3 {
+    margin-top: 0;
+    color: #007bff;
+    border-bottom: 2px solid #007bff1a;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+
+  .form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  input {
+    flex: 1 1 250px;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+  }
+
+  .btn {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: 600;
+  }
+
+  .btn:hover {
+    background: #0056b3;
+  }
+
+  .voter-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  .voter-table th, .voter-table td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+  }
+
+  .voter-table th {
+    background: #f8f9fa;
+    color: #333;
+  }
+
+  @media (max-width: 768px) {
+    .form {
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}

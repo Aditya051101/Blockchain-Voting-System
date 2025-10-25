@@ -1,0 +1,204 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- Full Page Wrapper -->
+<div class="fullpage-login">
+
+  <!-- Header -->
+  <header class="top-header">
+    <h2>Welcome to Cryptovoting</h2>
+  </header>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <!-- Left Image -->
+    <div class="left-panel">
+      <img src="{{ url_for('static', filename='image_vote.png') }}" alt="Cryptovoting">
+    </div>
+
+    <!-- Right Login Form -->
+    <div class="right-panel">
+      <div class="login-box">
+        <h3>Please Login..</h3>
+        <form method="POST" class="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" placeholder="Enter your username" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter your password" required>
+          </div>
+
+          <!-- <div class="form-footer">
+            <a href="#" class="forgot">Forgot Password?</a>
+          </div> -->
+
+          <button type="submit" class="login-btn">Login</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CSS Styling -->
+<style>
+  /* Remove layout container limits */
+  .container, .content, main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Ensure full viewport coverage */
+  .fullpage-login {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f7fb;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header Bar */
+  .top-header {
+    background-color: #001f66;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+  }
+
+  /* Main Layout */
+  .main-container {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 60px;
+    gap: 60px;
+  }
+
+  /* Left Panel (Image) */
+  .left-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .left-panel img {
+    width: 90%;
+    max-width: 800px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Right Panel (Login Box) */
+  .right-panel {
+    flex: 0.7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .login-box {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    padding: 40px 50px;
+    width: 380px;
+  }
+
+  .login-box h3 {
+    text-align: center;
+    font-size: 22px;
+    color: #001f66;
+    margin-bottom: 25px;
+    font-weight: 600;
+  }
+
+  /* Form */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: 0.3s ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #001f66;
+    box-shadow: 0 0 5px rgba(0, 31, 102, 0.3);
+  }
+
+  .form-footer {
+    text-align: right;
+  }
+
+  .forgot {
+    font-size: 14px;
+    text-decoration: none;
+    color: #001f66;
+    font-weight: 500;
+  }
+
+  .forgot:hover {
+    text-decoration: underline;
+  }
+
+  /* Button */
+  .login-btn {
+    background-color: #001f66;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+    width: 100%;
+  }
+
+  .login-btn:hover {
+    background-color: #0033aa;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main-container {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .left-panel img {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+  }
+</style>
+
+{% endblock %}

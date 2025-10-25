@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="results-page">
+
+  <h2 class="page-title">🗳️ Election Results</h2>
+
+  <!-- Current Election Section -->
+  <section class="card current-election">
+    <h3>Current Election Status</h3>
+    <p class="status-text"><strong>Status:</strong> {{ status }}</p>
+
+    {% if declared %}
+      <div class="winner-box">
+        <h4>🏆 Winner: <span class="winner-name">{{ winner }}</span></h4>
+        <h5>Vote Count:</h5>
+        <table class="results-table">
+          <thead>
+            <tr><th>Candidate</th><th>Votes</th></tr>
+          </thead>
+          <tbody>
+          {# ✅ Sort by vote count descending (value = item[1]) #}
+          {% for name, votes in counts.items()|sort(attribute='1', reverse=True) %}
+            <tr>
+              <td>{{ name }}</td>
+              <td>{{ votes }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% elif status == "Voting ended – Results not declared" %}
+      <div class="info-box warning">⚠️ Voting has ended, but results are not yet declared.</div>
+
+    {% elif status == "Voting in progress" %}
+      <div class="info-box ongoing">🕒 Voting is currently in progress. Results will appear after declaration.</div>
+
+    {% else %}
+      <div class="info-box neutral">ℹ️ No election data available.</div>
+    {% endif %}
+  </section>
+
+  <!-- Divider -->
+  <hr class="divider">
+
+  <!-- Past Results Section -->
+  <section class="card past-results">
+    <h3>📜 Past Election Records</h3>
+    {% if records %}
+      <table class="past-table">
+        <thead>
+          <tr><th>Date & Time</th><th>Winner</th><th>Total Votes</th></tr>
+        </thead>
+        <tbody>
+        {% for r in records %}
+          <tr>
+            <td>{{ r.timestamp }}</td>
+            <td>{{ r.winner }}</td>
+            <td>{{ r.total_votes }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="info-box neutral">No previous election records available.</div>
+    {% endif %}
+  </section>
+
+</div>
+
+<!-- Styling -->
+<style>
+  .results-page {
+    max-width: 950px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .page-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 25px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    padding: 25px;
+    margin-bottom: 30px;
+  }
+
+  h3 {
+    color: #007bff;
+    margin-top: 0;
+    border-bottom: 2px solid #007bff1a;
+    padding-bottom: 6px;
+  }
+
+  .status-text {
+    font-size: 1.1rem;
+    color: #444;
+    margin-bottom: 20px;
+  }
+
+  .winner-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+
+  .winner-name {
+    color: #007bff;
+    font-weight: 700;
+  }
+
+  .results-table, .past-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  .results-table th, .past-table th {
+    background: #007bff;
+    color: #fff;
+    padding: 10px;
+    text-align: left;
+  }
+
+  .results-table td, .past-table td {
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+  }
+
+  .info-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+
+  .info-box.warning {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .info-box.ongoing {
+    background: #cce5ff;
+    color: #004085;
+  }
+
+  .info-box.neutral {
+    background: #f8f9fa;
+    color: #6c757d;
+  }
+
+  .divider {
+    border: none;
+    border-top: 2px dashed #ccc;
+    margin: 40px 0;
+  }
+
+  .past-results table {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .results-table th, .results-table td,
+    .past-table th, .past-table td {
+      font-size: 0.9rem;
+      padding: 8px;
+    }
+  }
+</style>
+{% endblock %}
