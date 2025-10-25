@@ -58,14 +58,10 @@
 
     <!-- JavaScript for Signing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
     <script>
+      // Initialize elliptic curve
       const ec = new elliptic.ec('secp256k1');
-
-      async function hexSha256(str) {
-        const enc = new TextEncoder();
-        const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
-        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-      }
 
       function hexToBytes(hex) {
         return new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
@@ -74,21 +70,33 @@
       async function signAndSubmit() {
         const priv = document.getElementById('private_key').value.trim();
         const cid = document.getElementById('candidate_id').value;
-        if (!priv) { alert('⚠️ Please enter your private key'); return; }
 
-        const ballotString = Math.random().toString(36).slice(2) + '|' + cid + '|' + Date.now();
-        const ballotHashHex = await hexSha256(ballotString);
+        if (!priv) return alert('⚠️ Please enter your private key.');
 
-        const key = ec.keyFromPrivate(priv, 'hex');
-        const digestBytes = hexToBytes(ballotHashHex);
-        const sig = key.sign(digestBytes);
-        const sigHex = sig.r.toString('hex').padStart(64, '0') + sig.s.toString('hex').padStart(64, '0');
+        try {
+          // 1️⃣ Create random ballot string
+          const ballotString = Math.random().toString(36).slice(2) + '|' + cid + '|' + Date.now();
 
-        document.getElementById('hidden_candidate_id').value = cid;
-        document.getElementById('hidden_ballot_hash').value = ballotHashHex;
-        document.getElementById('hidden_signature').value = sigHex;
+          // 2️⃣ Compute SHA256 hash (using js-sha256)
+          const ballotHashHex = sha256(ballotString);
 
-        document.getElementById('voteForm').submit();
+          // 3️⃣ Sign the hash with secp256k1 private key
+          const key = ec.keyFromPrivate(priv, 'hex');
+          const digestBytes = hexToBytes(ballotHashHex);
+          const sig = key.sign(digestBytes);
+          const sigHex = sig.r.toString('hex').padStart(64, '0') + sig.s.toString('hex').padStart(64, '0');
+
+          // 4️⃣ Fill hidden fields and submit form
+          document.getElementById('hidden_candidate_id').value = cid;
+          document.getElementById('hidden_ballot_hash').value = ballotHashHex;
+          document.getElementById('hidden_signature').value = sigHex;
+
+          document.getElementById('voteForm').submit();
+
+        } catch (err) {
+          alert("❌ Error while signing: " + err);
+          console.error(err);
+        }
       }
     </script>
   {% endif %}
